@@ -1,0 +1,14 @@
+# Core dependencies
+pandas==2.2.2
+numpy==1.26.4
+matplotlib==3.8.4
+flask==3.0.2
+
+# DTW library (basic version without native C dependencies)
+dtaidistance[basic]==2.3.13
+
+# LangChain ecosystem
+langchain==0.1.14
+langchain-core==0.1.34
+langchain-community==0.0.27
+langchain-ollama==0.0.6
