@@ -18,9 +18,9 @@ Adafruit_MPU6050 mpu;
 
 TinyGPSPlus gps;
 
-const char* ssid = "Mino";
-const char* password = "AGoodPass";
-const char* serverAddress = "192.168.10.188";
+const char* ssid = "iPhone";
+const char* password = "123123124";
+const char* serverAddress = "172.20.10.8"; 
 const char* webSocketIp = "192.168.10.173";
 const int websocketPort=8080;
 const int serverPort = 8080;
@@ -132,7 +132,7 @@ void checkDistance(void* params){
     Serial.println(" cm");
 
     // Wait for a short delay before the next reading
-    vTaskDelay(pdMS_TO_TICKS(36));
+    vTaskDelay(pdMS_TO_TICKS(50));
   }
 }
 void detectStep(float accX, float accY, float accZ) {
@@ -345,14 +345,7 @@ void sendHttpRequest(void *params) {
       jsonDoc["acceleration_x"] = accel.acceleration.x;
       jsonDoc["acceleration_y"] = accel.acceleration.y;
       jsonDoc["acceleration_z"] = accel.acceleration.z;
-      jsonDoc["rotation_x"] = gyroDegX;
-      jsonDoc["rotation_y"] = gyroDegY;
-      jsonDoc["rotation_z"] = gyroDegZ;
-      jsonDoc["temperature"] = temp.temperature;
-      jsonDoc["latitude"] = latitude;
-      jsonDoc["longitude"] = longtitude;
-      jsonDoc["altitude"] = altitude;
-      jsonDoc["steps"]= stepCount;
+      jsonDoc["altitude"]=distanceGround;
       //@TODO add the uv intensity here!!!
 
       // Serialize JSON to string
@@ -363,6 +356,7 @@ void sendHttpRequest(void *params) {
       HTTPClient http;
       String serverURL = "http://" + String(serverAddress) + ":" + String(serverPort) + "/data";  // Adjust endpoint
       http.begin(serverURL);
+      // http.setTimeout(1200);  // <-- Add this line too
       http.addHeader("Content-Type", "application/json");
 
       int httpResponseCode = http.POST(jsonPayload);
@@ -374,20 +368,21 @@ void sendHttpRequest(void *params) {
         Serial.println(httpResponseCode);
       }
       http.end();
-      HTTPClient http2;
-      serverURL = "http://" + String(webSocketIp) + ":" + String(websocketPort) + "/data";  // Adjust endpoint
-      http2.begin(serverURL);
-      http2.addHeader("Content-Type", "application/json");
+      // HTTPClient http2;
+      // serverURL = "http://" + String(webSocketIp) + ":" + String(websocketPort) + "/data";  // Adjust endpoint
+      // http2.begin(serverURL);
+      // http2.setTimeout(1200);  // <-- Add this line too
+      // http2.addHeader("Content-Type", "application/json");
 
-      httpResponseCode = http2.POST(jsonPayload);
-      if (httpResponseCode > 0) {
-        Serial.print("HTTP2 Response code: ");
-        Serial.println(httpResponseCode);
-      } else {
-        Serial.print("HTTP2 Error: ");
-        Serial.println(httpResponseCode);
-      }
-      http2.end();
+      // httpResponseCode = http2.POST(jsonPayload);
+      // if (httpResponseCode > 0) {
+      //   Serial.print("HTTP2 Response code: ");
+      //   Serial.println(httpResponseCode);
+      // } else {
+      //   Serial.print("HTTP2 Error: ");
+      //   Serial.println(httpResponseCode);
+      // }
+      // http2.end();
     }
     vTaskDelay(100 / portTICK_PERIOD_MS);
   }
@@ -414,11 +409,9 @@ void setup(void) {
   Serial.println("Adafruit MPU6050 test!");
 
   // Try to initialize!
-  if (!mpu.begin()) {
+  while (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
-    while (1) {
-      delay(10);
-    }
+    delay(5000);
   }
   Serial.println("MPU6050 Found!");
 
