@@ -20,10 +20,17 @@ type ChatResponse struct {
 	Reply string `json:"reply"`
 }
 
+type ScoreData struct {
+	Exercise string  `json:"exercise"`
+	Score    float64 `json:"score"`
+}
+
 var model *genai.GenerativeModel
 var ctx context.Context
 
 func main() {
+	http.HandleFunc("/score", scoreHandler)
+
 	// Load environment variables
 	godotenv.Load(".env")
 	apiKey := os.Getenv("API_KEY")
@@ -83,4 +90,22 @@ func respondWithJSON(w http.ResponseWriter, status int, payload ChatResponse) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(payload)
+}
+
+func scoreHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received a score POST at /score")
+
+	var data ScoreData
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		log.Println("Error decoding score JSON:", err)
+		http.Error(w, "Invalid score data", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Exercise: %s, Score: %.2f\n", data.Exercise, data.Score)
+
+	// Respond with the score back to the client
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]float64{"score": data.Score})
 }
