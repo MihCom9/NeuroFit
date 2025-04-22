@@ -13,7 +13,7 @@ import {
 import { Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.0.104:8080/chat'; // Make sure your server is accessible from device!
+const API_URL = 'http://172.20.10.3:8080/chat'; 
 
 const ProfileScreen = () => {
   const [profile, setProfile] = useState({

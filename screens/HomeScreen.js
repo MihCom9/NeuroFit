@@ -18,7 +18,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-const API_URL = 'http://192.168.0.104:8080/chat';
+const API_URL = 'http://172.20.10.3:8080/chat';
 
 const HomeScreen = () => {
   const [aiResponse, setAiResponse] = useState('');

@@ -1,28 +1,31 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack'; 
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
+// Screens
 import SmartGadgetScreen from './screens/SmartGadget';
 import ExerciseDetailScreen from './screens/ExerciseScreen';
-import HomeScreen from './screens/HomeScreen'; 
-import ProfileScreen from './screens/ProfileScreen'; 
+import HomeScreen from './screens/HomeScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
+// Stack and Tab navigators
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-const ExerciseStack = () => (
+// Exercise stack wrapped in a proper component
+const ExerciseStackScreen = () => (
   <Stack.Navigator>
-    <Stack.Screen 
-      name="SmartGadget" 
-      component={SmartGadgetScreen} 
-      options={{ headerShown: false }} 
+    <Stack.Screen
+      name="SmartGadget"
+      component={SmartGadgetScreen}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen 
-      name="ExerciseDetail" 
-      component={ExerciseDetailScreen} 
-      options={{ headerShown: false }} 
+    <Stack.Screen
+      name="ExerciseDetail"
+      component={ExerciseDetailScreen}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -31,13 +34,13 @@ const App = () => {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        initialRouteName="Home" 
+        initialRouteName="Home"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
             let iconName;
 
             if (route.name === 'SmartGadget') {
-              iconName = 'fitness'; 
+              iconName = 'fitness';
             } else if (route.name === 'Home') {
               iconName = 'home';
             } else if (route.name === 'Profile') {
@@ -52,10 +55,8 @@ const App = () => {
           inactiveTintColor: 'gray',
         }}
       >
-        
-    
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="SmartGadget" component={ExerciseStack} />
+        <Tab.Screen name="SmartGadget" component={ExerciseStackScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
     </NavigationContainer>
