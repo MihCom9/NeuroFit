@@ -1,0 +1,87 @@
+from flask import Flask, request, jsonify
+import numpy as np
+import pandas as pd
+import csv
+import os
+from analysis import process_data
+from helpers import calculate_score
+
+app = Flask(__name__)
+
+DATA_FILE = "./New-AI/data.csv"
+
+real_path = []
+last_vector = None
+exercise = None
+ideal_vectors = None
+
+@app.route('/start', methods=['POST'])
+def start_exercise():
+    global exercise, ideal_vectors, real_path
+    data = request.json
+    exercise = data['exercise']
+    print(f"[*] Starting exercise: {exercise}")
+    real_path.clear()
+
+    path = f"./New-AI/ideal_{exercise}.csv"
+    if not os.path.exists(path):
+        return jsonify({"error": f"No ideal file for {exercise}"}), 400
+
+    df = pd.read_csv(path)
+    ideal_vectors = [np.array(v) for v in df[['X', 'Y', 'Z', 'Height']].values]
+
+    with open(DATA_FILE, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['X', 'Y', 'Z', 'Height', 'Score'])
+
+    return jsonify({"message": f"Exercise '{exercise}' started"}), 200
+
+@app.route('/data', methods=['POST'])
+def receive_data():
+    global real_path, last_vector, ideal_vectors
+
+    if ideal_vectors is None:
+        return jsonify({"error": "Start exercise first"}), 400
+
+    try:
+        data = request.json
+        x = float(data['acceleration_x'])
+        y = float(data['acceleration_y'])
+        z = float(data['acceleration_z'])
+        height = float(data['altitude'])
+
+        vector = np.array([x, y, z, height])
+
+        if last_vector is not None and np.allclose(vector, last_vector, atol=1e-6):
+            last_vector = vector
+            return jsonify({"score": 0.0})
+
+        last_vector = vector
+
+        if len(real_path) == len(ideal_vectors):
+            real_path.clear()
+
+        real_path.append(vector)
+        idx = len(real_path) - 1
+        ideal_vector = ideal_vectors[idx]
+
+        score, *_ = calculate_score(vector, ideal_vector, real_path, ideal_vectors)
+
+        with open(DATA_FILE, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([x, y, z, height, round(score)])
+
+        return jsonify({ "score": round(score, 2) })
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({ "error": str(e) }), 400
+
+@app.route('/end', methods=['POST'])
+def end_exercise():
+    from analysis import process_data
+    summary = process_data(exercise)
+    return jsonify({"summary": summary})
+
+if __name__ == '__main__':
+    app.run(host='172.20.10.8', port=8080)
